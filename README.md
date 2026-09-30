@@ -66,8 +66,11 @@ Class 6 had the highest F1 score (0.74), while Class 5 had the lowest (0.47).
 ## Running the project
 
 The whole project is in the Jupyter notebook and was run using Google Colab.
+Install the required dependencies:
 
-The required libraries are installed in the notebook, so the cells can be run from top to bottom.
+pip install datasets lightgbm imbalanced-learn shap scikit-learn matplotlib seaborn gensim xgboost
+
+Then run the notebook cells from top to bottom.
 
 Main libraries used:
 
