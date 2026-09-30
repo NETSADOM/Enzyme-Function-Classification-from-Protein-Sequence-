@@ -1,76 +1,44 @@
 # Enzyme Function Classification
 
-A machine learning project for predicting the main enzyme class (EC 1–6) from protein amino acid sequences.
+This project is about classifying protein sequences into the six main enzyme classes (EC 1–6) using machine learning.
 
-The project uses sequence-based feature engineering, multiple machine learning classifiers, and ensemble learning methods to classify proteins into their main Enzyme Commission (EC) classes.
+I used the SwissProt-EC dataset from Hugging Face (`DanielHesslow/SwissProt-EC`). After cleaning the dataset, I used a sample of 10,000 sequences since running the full dataset was too computationally expensive.
 
-## Dataset
+The project was implemented and run on Google Colab.
 
-The project uses the `DanielHesslow/SwissProt-EC` dataset from Hugging Face.
+## What I did
 
-After preprocessing, 169,682 usable protein sequences were available. Due to computational limitations, a random sample of 10,000 sequences was used for the experiment.
+The protein sequences first had to be converted into numerical features that could be used by the models. I used:
 
-The data was divided using a stratified split:
+- Amino Acid Composition (AAC)
+- Dipeptide Composition (DPC)
+- Tripeptide (3-mer) features
+- TruncatedSVD
+- Word2Vec embeddings
 
-- 70% training: 7,000 sequences
-- 15% validation: 1,500 sequences
-- 15% testing: 1,500 sequences
+After combining these, each sequence had 712 features.
 
-The preprocessing steps included removing missing and duplicate sequences, handling non-standard amino acid characters, and extracting the first digit of the EC number as the target class.
+The data was split into 70% training, 15% validation, and 15% testing. I used stratified splitting to keep the class distribution similar between the three sets.
 
-For example:
-
-```text
-EC:2.7.1.1 -> Class 2
-```
-
-This resulted in six target classes, EC 1 through EC 6.
-
-## Feature Engineering
-
-Several sequence representations were used:
-
-- **Amino Acid Composition (AAC):** 20 features
-- **Dipeptide Composition (DPC):** 400 features
-- **Tripeptide features:** 100 features selected using `SelectKBest` with mutual information
-- **TruncatedSVD:** 128 features
-- **Word2Vec:** 64-dimensional sequence embeddings
-
-The final combined representation contained:
-
-```text
-20 + 400 + 100 + 128 + 64 = 712 features
-```
-
-## Class Imbalance
-
-The dataset contains an unequal number of samples across the six enzyme classes.
-
-SMOTE was included inside the model training pipelines so that oversampling was applied only to training data during cross-validation and not to the validation or test sets.
+Since some enzyme classes had more samples than others, I used SMOTE during training to deal with the class imbalance.
 
 ## Models
 
-The following models were trained and evaluated:
+I trained and compared:
 
 - Random Forest
 - LightGBM
-- Support Vector Machine (SVM)
+- SVM
+- MLP
 - XGBoost
-- Multilayer Perceptron (MLP)
 
-The main models were tuned using 5-fold cross-validation with Macro F1 as the primary evaluation metric.
-
-Due to its computational cost, SVM hyperparameter tuning was performed using a random subset of 3,000 training samples.
-
-## Ensemble Methods
-
-Three ensemble methods were evaluated:
+I also tried three ensemble methods:
 
 - Hard Voting
 - Soft Voting
 - Stacking
 
-The models were compared using validation Macro F1. The model with the highest validation Macro F1 was selected for final evaluation on the test set.
+The models were compared mainly using Macro F1. Stacking had the highest validation Macro F1, so I used it for the final test.
 
 ## Results
 
@@ -85,69 +53,39 @@ The models were compared using validation Macro F1. The model with the highest v
 | Soft Voting | 0.6247 | 0.6440 |
 | Stacking | **0.6313** | 0.6387 |
 
-Stacking achieved the highest validation Macro F1 and was selected as the final model.
+Final Stacking results on the test set:
 
-### Test Results
+- Macro F1: **0.6104**
+- Accuracy: **63.53%**
+- MCC: **0.5342**
+- AUPRC: **0.6996**
+- AUC: **0.8778**
 
-The final Stacking model achieved:
+Class 6 had the highest F1 score (0.74), while Class 5 had the lowest (0.47).
 
-| Metric | Score |
-| --- | ---: |
-| Macro F1 | 0.6104 |
-| Accuracy | 0.6353 |
-| MCC | 0.5342 |
-| AUPRC | 0.6996 |
-| AUC | 0.8778 |
+## Running the project
 
-Out of 1,500 test sequences, 953 were classified correctly and 547 were misclassified.
+The whole project is in the Jupyter notebook and was run using Google Colab.
 
-Class 6 achieved the highest class-level F1 score at approximately 0.74, while Class 5 had the lowest at approximately 0.47.
+The required libraries are installed in the notebook, so the cells can be run from top to bottom.
 
-## Running the Notebook
-
-The project was developed and executed using **Google Colab**.
-
-Open the Jupyter Notebook in Google Colab and run the cells from top to bottom.
-
-The required Python packages are installed from within the notebook:
-
-```bash
-pip install datasets lightgbm imbalanced-learn shap scikit-learn matplotlib seaborn gensim xgboost
-```
-
-The notebook follows the workflow:
+Main libraries used:
 
 ```text
-Data Loading
-    ↓
-Preprocessing
-    ↓
-Feature Engineering
-    ↓
-Model Training and Tuning
-    ↓
-Ensemble Evaluation
-    ↓
-Final Test Evaluation
-    ↓
-Error Analysis
+scikit-learn
+lightgbm
+xgboost
+imbalanced-learn
+gensim
+datasets
+matplotlib
+seaborn
 ```
 
 ## Limitations
 
-Only 10,000 sequences were used from the larger processed dataset because of computational limitations.
+I only used 10,000 sequences because of the time and computational resources required to process the full dataset.
 
-The models rely on sequence-derived features and do not incorporate additional biological information such as protein 3D structure or active-site information.
+The project also only uses information extracted from the protein sequences. Other biological information, such as protein structure and active sites, was not included.
 
-The number of selected tripeptide features was fixed at 100, and SVM hyperparameter tuning was performed on a smaller subset of the training data.
-
-Future work could evaluate larger training samples, different feature-selection settings, additional protein representations, and alternative classification approaches.
-
-## References
-
-- DanielHesslow/SwissProt-EC Dataset, Hugging Face
-- Scikit-learn
-- LightGBM
-- XGBoost
-- imbalanced-learn
-- Gensim
+Using more of the available data and trying different feature representations could be explored in future work.
